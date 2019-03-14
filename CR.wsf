@@ -1,0 +1,717 @@
+<?xml version="1.0" ?>
+<package>
+<job id="CursorRemedy">
+<resource id="UI_HTA_Code">
+<![CDATA[
+<html>
+<head>
+<title>CR Installation User Interface</title>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
+<meta name="author" content="Javad Bayat">
+<META http-equiv="MSThemeCompatible" content="Yes">
+<script language="jscript">
+var shell = new ActiveXObject("Shell.Application");
+var PP = GetObject("", "PowerPoint.Application");
+var mainApp = PP.Run("GetSharedMemory")("CR");
+mainApp.UI = this;
+
+function initUI()
+{
+	shell.MinimizeAll();
+	moveTo(0, 0);
+	resizeTo(screen.availWidth, 70);
+	setTimeout("prvBtn.click();", 1000);
+}
+</script>
+	<HTA:APPLICATION ID="UI"
+		APPLICATIONNAME="CR Installation User Interface"
+		BORDER="thin"
+		BORDERSTYLE="normal"
+		CAPTION="no"
+		innerborder="off"
+		maximizeButton="no"
+		minimizeButton="no"
+		SHOWINTASKBAR="no"
+		SINGLEINSTANCE="yes"
+		SYSMENU="no"
+		VERSION="1.0"
+		WINDOWSTATE="normal"
+		contextmenu="no"
+		selection="no"
+		scroll="no"
+	>
+</head>
+<body bgcolor="#ffffcc" style="border-bottom:2px solid green;cursor:default;" onload="initUI()" leftmargin="0" topmargin="4">
+<table width="100%">
+	<tr>
+		<td align="center" style="color:green;"><b>Cursor Remedy</b></td>
+		<td align="center"><button onclick="mainApp.UI_Preview()" id="prvBtn">Preview</button></td>
+		<td align="center"><button onclick="mainApp.UI_Quit();self.close();">Quit</button></td>
+	</tr>
+	<tr>
+		<td align="center" style="color:blue;">Author: Javad Bayat</td>
+		<td align="center"><button onclick="if (mainApp.UI_Install(false)) self.close();">Install</button></td>
+		<td align="center"><button onclick="if (mainApp.UI_Install(true)) self.close();">Install for all users</button></td>
+	</tr>
+</table>
+</body>
+</html>
+]]>
+</resource>
+<resource id="Err_SecurityCircumevention">
+VBIOLET Error:
+Error while performing security circumevention:
+%1
+Note that this error usually occurs when PowerPoint is not installed on your computer.
+</resource>
+<resource id="Err_ModuleInitialization">
+VBIOLET Error:
+Error when interacting with PowerPoint:
+%1
+Note that this error usually occurs when the security circumevention is not performed successfully.
+</resource>
+<resource id="Msg_Exit">
+Are you sure you want to close Cursor Remedy?
+</resource>
+<resource id="Err_ExtensionChanged">
+The extension of the program must remain ".wsf". You cannot change it to ".%1".
+</resource>
+<resource id="AppDescription">
+The only screen saver that doesn't immerse your screen!
+</resource>
+<resource id="Msg_FinalizeInstallation">
+Cursor Remedy has been successfully installed on your computer.
+Users who want Cursor Remedy to work must now change their screen saver to Blank.
+Note: Cursor Remedy's timeout is the same as the timeout setting that you specify for the Blank Screen Saver.
+Would you like to change your screen saver now?
+</resource>
+<resource id="VBCode">
+<![CDATA[
+Public Type RECT
+	Left As Long
+	Top As Long
+	Right As Long
+	Bottom As Long
+End Type
+
+Public Type OPENFILENAME
+	lStructSize As Long
+	hwndOwner As Long
+	hInstance As Long
+	lpstrFilter As String
+	lpstrCustomFilter As String
+	nMaxCustFilter As Long
+	nFilterIndex As Long
+	lpstrFile As String
+	nMaxFile As Long
+	lpstrFileTitle As String
+	nMaxFileTitle As Long
+	lpstrInitialDir As String
+	lpstrTitle As String
+	flags As Long
+	nFileOffset As Integer
+	nFileExtension As Integer
+	lpstrDefExt As String
+	lCustData As Long
+	lpfnHook As Long
+	lpTemplateName As String
+End Type
+
+Public Type POINTAPI
+	x As Long
+	y As Long
+End Type
+
+#If VBA7 Then
+	Public Declare PtrSafe Function GetCursorPos Lib "user32.dll" (ByRef lpPoint As POINTAPI) As Long
+	Public Declare PtrSafe Function SetCursorPos Lib "user32.dll" (ByVal x As Long, ByVal y As Long) As Long
+	Public Declare PtrSafe Sub Sleep Lib "kernel32.dll" (ByVal dwMilliseconds As Long)
+	Public Declare PtrSafe Function FindWindow Lib "user32.dll" Alias "FindWindowA" (ByVal lpClassName As String, ByVal lpWindowName As String) As Long
+	Public Declare PtrSafe Function GetWindowThreadProcessId Lib "user32.dll" (ByVal hwnd As Long, ByRef lpdwProcessId As Long) As Long
+	Public Declare PtrSafe Function GetCurrentProcessId Lib "kernel32.dll" () As Long
+	Public Declare PtrSafe Function SetWindowPos Lib "user32.dll" (ByVal hwnd As Long, ByVal hWndInsertAfter As Long, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long) As Long
+	Public Declare PtrSafe Function lstrlen Lib "kernel32.dll" Alias "lstrlenA" (ByVal lpString As String) As Long
+	Public Declare PtrSafe Function GetSaveFileName Lib "comdlg32.dll" Alias "GetSaveFileNameA" (ByRef pOpenfilename As OPENFILENAME) As Long
+	Public Declare PtrSafe Function GetWindowRect Lib "user32.dll" (ByVal hwnd As Long, ByRef lpRect As RECT) As Long
+#Else
+	Public Declare Function GetCursorPos Lib "user32.dll" (ByRef lpPoint As POINTAPI) As Long
+	Public Declare Function SetCursorPos Lib "user32.dll" (ByVal x As Long, ByVal y As Long) As Long
+	Public Declare Sub Sleep Lib "kernel32.dll" (ByVal dwMilliseconds As Long)
+	Public Declare Function FindWindow Lib "user32.dll" Alias "FindWindowA" (ByVal lpClassName As String, ByVal lpWindowName As String) As Long
+	Public Declare Function GetWindowThreadProcessId Lib "user32.dll" (ByVal hwnd As Long, ByRef lpdwProcessId As Long) As Long
+	Public Declare Function GetCurrentProcessId Lib "kernel32.dll" () As Long
+	Public Declare Function SetWindowPos Lib "user32.dll" (ByVal hwnd As Long, ByVal hWndInsertAfter As Long, ByVal x As Long, ByVal y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long) As Long
+	Public Declare Function lstrlen Lib "kernel32.dll" Alias "lstrlenA" (ByVal lpString As String) As Long
+	Public Declare Function GetSaveFileName Lib "comdlg32.dll" Alias "GetSaveFileNameA" (ByRef pOpenfilename As OPENFILENAME) As Long
+	Public Declare Function GetWindowRect Lib "user32.dll" (ByVal hwnd As Long, ByRef lpRect As RECT) As Long
+#EndIf
+
+Dim SharedMemory
+
+Public Function EstablishSharedMemory()
+	Set SharedMemory = CreateObject("Scripting.Dictionary")
+	SharedMemory("MyPID") = GetCurrentProcessId()
+	Set EstablishSharedMemory = SharedMemory
+End Function
+
+Public Function GetSharedMemory()
+	Set GetSharedMemory = SharedMemory
+End Function
+
+Public Function MoveCursor(pt As POINTAPI) As Boolean
+	Dim newPt As POINTAPI
+	SetCursorPos pt.x + 1, pt.y + 1
+	Sleep 20
+	GetCursorPos newPt
+	If (newPt.x = pt.x + 1) AND (newPt.y = pt.y + 1) Then
+		MoveCursor = True
+	Else
+		MoveCursor = False
+	End If
+End Function
+
+Public Function MoveToPointByAngle(ByVal CenterX As Long, ByVal CenterY As Long, ByVal radius As Long, ByVal angle As Long) As Boolean
+	Dim radians As Double
+	Dim pt As POINTAPI
+	
+	radians = angle * SharedMemory("PI") / 180
+	pt.x = CLng(CenterX + Cos(radians) * radius)
+	pt.y = CLng(CenterY - Sin(radians) * radius)
+	
+	MoveToPointByAngle = MoveCursor(pt)
+End Function
+
+Public Sub ScreenSaverH()
+	If ScreenSaverH_Intro() Then
+		Exit Sub
+	End If
+	
+	Do
+		If ScreenSaverH_Level1() Or ScreenSaverH_Level2() Or ScreenSaverH_Level3() Or ScreenSaverH_Level4() Then
+			Exit Sub
+		End If
+	Loop
+End Sub
+
+Public Sub ScreenSaverV()
+	If ScreenSaverV_Intro() Then
+		Exit Sub
+	End If
+	
+	Do
+		If ScreenSaverV_Level1() Or ScreenSaverV_Level2() Or ScreenSaverV_Level3() Or ScreenSaverV_Level4() Then
+			Exit Sub
+		End If
+	Loop
+End Sub
+
+Public Function ScreenSaverH_Intro() As Boolean
+	Dim offset As Long
+	Dim rectWidth As Long
+	Dim rectHeight As Long
+	Dim G As Long
+	Dim A As Double
+	Dim F As Long
+	
+	offset = CLng(SharedMemory("Height") / 2)
+	rectWidth = CLng(SharedMemory("Width") - SharedMemory("Height"))
+	rectHeight = CLng(SharedMemory("Height"))
+	G = CLng(Sqr(rectWidth * rectWidth + rectHeight * rectHeight) / 2)
+	A = Atn(rectHeight / rectWidth)
+	
+	For F = G To (G * 2) Step 3
+		Dim pt As POINTAPI
+		pt.x = CLng(offset + Cos(A) * F)
+		pt.y = CLng(Sin(A) * F)
+		
+		If NOT MoveCursor(pt) Then
+			ScreenSaverH_Intro = True
+			Exit Function
+		End If
+	Next
+	
+	ScreenSaverH_Intro = False
+End Function
+
+Public Function ScreenSaverH_Level1() As Boolean
+	Dim offset As Long
+	Dim radius As Long
+	Dim currentAngle As Long
+	
+	radius = CLng(SharedMemory("Height") / 2)
+	offset = CLng(SharedMemory("Width") - radius)
+	
+	For currentAngle = -90 To 90
+		If NOT MoveToPointByAngle(offset, radius, radius, currentAngle) Then
+			ScreenSaverH_Level1 = True
+			Exit Function
+		End If
+	Next
+	
+	ScreenSaverH_Level1 = False
+End Function
+
+Public Function ScreenSaverH_Level2() As Boolean
+	Dim offset As Long
+	Dim rectWidth As Long
+	Dim rectHeight As Long
+	Dim G As Long
+	Dim A As Double
+	Dim F As Long
+	
+	offset = CLng(SharedMemory("Height") / 2)
+	rectWidth = CLng(SharedMemory("Width") - SharedMemory("Height"))
+	rectHeight = CLng(SharedMemory("Height"))
+	G = CLng(Sqr(rectWidth * rectWidth + rectHeight * rectHeight))
+	A = Atn(rectHeight / rectWidth)
+	
+	For F = 0 To G Step 3
+		Dim pt As POINTAPI
+		pt.x = CLng(offset + rectWidth - Cos(A) * F)
+		pt.y = CLng(Sin(A) * F)
+		
+		If NOT MoveCursor(pt) Then
+			ScreenSaverH_Level2 = True
+			Exit Function
+		End If
+	Next
+	
+	ScreenSaverH_Level2 = False
+End Function
+
+Public Function ScreenSaverH_Level3() As Boolean
+	Dim radius As Long
+	Dim CurrentAngle As Long
+	
+	radius = CLng(SharedMemory("Height") / 2)
+	
+	For CurrentAngle = 270 To 90 Step -1
+		If NOT MoveToPointByAngle(radius, radius, radius, currentAngle) Then
+			ScreenSaverH_Level3 = True
+			Exit Function
+		End If
+	Next
+	
+	ScreenSaverH_Level3 = False
+End Function
+
+Public Function ScreenSaverH_Level4() As Boolean
+	Dim offset As Long
+	Dim rectWidth As Long
+	Dim rectHeight As Long
+	Dim G As Long
+	Dim A As Double
+	Dim F As Long
+	
+	offset = CLng(SharedMemory("Height") / 2)
+	rectWidth = CLng(SharedMemory("Width") - SharedMemory("Height"))
+	rectHeight = CLng(SharedMemory("Height"))
+	G = CLng(Sqr(rectWidth * rectWidth + rectHeight * rectHeight))
+	A = Atn(rectHeight / rectWidth)
+	
+	For F = 0 To G Step 3
+		Dim pt As POINTAPI
+		pt.x = CLng(offset + Cos(A) * F)
+		pt.y = CLng(Sin(A) * F)
+		
+		If NOT MoveCursor(pt) Then
+			ScreenSaverH_Level4 = True
+			Exit Function
+		End If
+	Next
+
+	ScreenSaverH_Level4 = False
+End Function
+
+Public Function ScreenSaverV_Intro() As Boolean
+	Dim offset As Long
+	Dim rectWidth As Long
+	Dim rectHeight As Long
+	Dim G As Long
+	Dim A As Double
+	Dim F As Long
+
+	offset = CLng(SharedMemory("Width") / 2)
+	rectWidth = CLng(SharedMemory("Width"))
+	rectHeight = CLng(SharedMemory("Height") - SharedMemory("Width"))
+	G = CLng(Sqr(rectWidth * rectWidth + rectHeight * rectHeight) / 2)
+	A = Atn(rectHeight / rectWidth)
+
+	For F = G To (G * 2) Step 3
+		Dim pt As POINTAPI
+		pt.x = CLng(rectWidth - Cos(A) * F)
+		pt.y = CLng(offset + Sin(A) * F)
+		
+		If NOT MoveCursor(pt) Then
+			ScreenSaverV_Intro = True
+			Exit Function
+		End If
+	Next
+	
+	ScreenSaverV_Intro = False
+End Function
+
+Public Function ScreenSaverV_Level1() As Boolean
+	Dim radius As Long
+	Dim offset As Long
+	Dim currentAngle As Long
+
+	radius = CLng(SharedMemory("Width") / 2)
+	offset = CLng(SharedMemory("Height") - radius)
+
+	For currentAngle = -180 To 0
+		If NOT MoveToPointByAngle(radius, offset, radius, currentAngle) Then
+			ScreenSaverV_Level1 = True
+			Exit Function
+		End If
+	Next
+
+	ScreenSaverV_Level1 = False
+End Function
+
+Public Function ScreenSaverV_Level2() As Boolean
+	Dim offset As Long
+	Dim rectWidth As Long
+	Dim rectHeight As Long
+	Dim G As Long
+	Dim A As Double
+	Dim F As Long
+
+	offset = CLng(SharedMemory("Width") / 2)
+	rectWidth = CLng(SharedMemory("Width"))
+	rectHeight = CLng(SharedMemory("Height") - SharedMemory("Width"))
+	G = CLng(Sqr(rectWidth * rectWidth + rectHeight * rectHeight))
+	A = Atn(rectHeight / rectWidth)
+
+	For F = G To 0 Step -3
+		Dim pt As POINTAPI
+		pt.x = CLng(Cos(A) * F)
+		pt.y = CLng(offset + Sin(A) * F)
+		
+		If NOT MoveCursor(pt) Then
+			ScreenSaverV_Level2 = True
+			Exit Function
+		End If
+	Next
+
+	ScreenSaverV_Level2 = False
+End Function
+
+Public Function ScreenSaverV_Level3() As Boolean
+	Dim radius As Long
+	Dim CurrentAngle As Long
+	
+	radius = CLng(SharedMemory("Width") / 2)
+	
+	For CurrentAngle = 180 To 0 Step -1
+		If NOT MoveToPointByAngle(radius, radius, radius, currentAngle) Then
+			ScreenSaverV_Level3 = True
+			Exit Function
+		End If
+	Next
+	
+	ScreenSaverV_Level3 = False
+End Function
+
+Public Function ScreenSaverV_Level4() As Boolean
+	Dim offset As Long
+	Dim rectWidth As Long
+	Dim rectHeight As Long
+	Dim G As Long
+	Dim A As Double
+	Dim F As Long
+
+	offset = CLng(SharedMemory("Width") / 2)
+	rectWidth = CLng(SharedMemory("Width"))
+	rectHeight = CLng(SharedMemory("Height") - SharedMemory("Width"))
+	G = CLng(Sqr(rectWidth * rectWidth + rectHeight * rectHeight))
+	A = Atn(rectHeight / rectWidth)
+
+	For F = 0 To G Step 3
+		Dim pt As POINTAPI
+		pt.x = CLng(rectWidth - Cos(A) * F)
+		pt.y = CLng(offset + Sin(A) * F)
+		
+		If NOT MoveCursor(pt) Then
+			ScreenSaverV_Level4 = True
+			Exit Function
+		End If
+	Next
+	
+	ScreenSaverV_Level4 = False
+End Function
+
+Public Function WhereToInstall() As String
+	Dim ofn As OPENFILENAME
+	ofn.lStructSize = Len(ofn)
+	ofn.lpstrFilter = "Windows Script Files (*.wsf)" & Chr(0) & "*.wsf" & Chr(0)
+	ofn.lpstrFile = SharedMemory("ScriptPath") & Chr(0) & Space(255)
+	ofn.nMaxFile = Len(SharedMemory("ScriptPath")) + 257
+	ofn.lpstrTitle = "Where to install"
+	ofn.flags = &HA0020&
+	ofn.lpstrDefExt = "wsf"
+	SetHookPointer ofn, AddressOf SaveDlgHook
+	If GetSaveFileName(ofn) <> 0 Then
+		SharedMemory("OfnFlags") = ofn.flags
+		whereToInstall = Left(ofn.lpstrFile, lstrlen(ofn.lpstrFile))
+	Else
+		whereToInstall = ""
+	End If
+End Function
+
+Public Function SaveDlgHook(ByVal Arg1 As Long, ByVal Arg2 As Long, ByVal Arg3 As Long, ByVal Arg4 As Long) As Long
+	Static MoveDone As Boolean
+	If MoveDone Then
+		Exit Function
+	End If
+	
+	Dim dlg As Long
+	Dim pid As Long
+	Dim rct As RECT
+	Dim x As Long
+	Dim y As Long
+	Dim cx As Long
+	Dim cy As Long
+	
+	dlg = FindWindow(vbNullString, "Where to install")
+	If dlg = 0 Then
+		Exit Function
+	End If
+	
+	If GetWindowThreadProcessId(dlg, pid) = 0 Then
+		Exit Function
+	End If
+	
+	If pid <> SharedMemory("MyPID") Then
+		Exit Function
+	End If
+	
+	If GetWindowRect(dlg, rct) = 0 Then
+		Exit Function
+	End If
+	
+	cx = rct.Right - rct.Left
+	cy = rct.Bottom - rct.Top
+	x = CLng((SharedMemory("Width") - cx) / 2)
+	y = CLng((SharedMemory("Height") - cy) / 2)
+	
+	SetWindowPos dlg, 0, x, y, 0, 0, 1
+	MoveDone = True
+	SaveDlgHook = 1
+End Function
+
+Sub SetHookPointer(ByRef ofnStruct As OPENFILENAME, ByVal hookAddr As Long)
+	ofnStruct.lpfnHook = hookAddr
+End Sub
+]]>
+</resource>
+<script language="jscript">
+<![CDATA[
+var FSO = new ActiveXObject("Scripting.FileSystemObject");
+var wshShell = new ActiveXObject("WScript.Shell");
+checkScript();
+
+var UI_Preview = startScreenSaver;
+var UI_Quit = Exit;
+var isInInstallationStation = false;
+var isNewlyInstalled = false;
+
+var wshNetwork = new ActiveXObject("WScript.Network");
+try
+{
+	var PP = GetObject("", "PowerPoint.Application");
+	var SM = PP.Run("GetSharedMemory");
+	if (wshNetwork.UserName == SM("ParentUser"))
+	{
+		if (SM("ExitCR")())
+			wshShell.Run("scrnsave.scr");
+	}
+	WScript.Quit();
+}
+catch (e) {}
+
+var window = WScript.CreateObject("htmlfile").parentWindow;
+var QuitMission = false;
+var services = GetObject("winmgmts:");
+var PP = initVBIOLET();
+var SharedMemory = PP.Run("EstablishSharedMemory");
+SharedMemory("ExitCR") = Exit;
+SharedMemory("ParentUser") = wshNetwork.UserName;
+
+SharedMemory("Width") = window.screen.width - 2;
+SharedMemory("Height") = window.screen.height - 2;
+SharedMemory("PI") = Math.PI;
+
+if ((!FSO.FileExists(FSO.BuildPath(wshShell.SpecialFolders(3), "Cursor Remedy.lnk"))) && (!FSO.FileExists(FSO.BuildPath(wshShell.SpecialFolders(14), "Cursor Remedy.lnk"))))
+	installationStation();
+
+var col = services.ExecNotificationQuery('Select * From __InstanceCreationEvent Within 1 Where TargetInstance ISA "Win32_Process" And TargetInstance.Name = "scrnsave.scr"');
+while (1)
+{
+	try
+	{
+		col.NextEvent().TargetInstance.Terminate();
+	}
+	catch (e)
+	{
+		continue;
+	}
+	
+	if (QuitMission)
+		break;
+	
+	startScreenSaver();
+}
+
+PP.Quit();
+
+function checkScript()
+{
+	if (FSO.GetBaseName(WScript.FullName).toLowerCase() != "wscript")
+	{
+		wshShell.Run('wscript "' + WScript.ScriptFullName + '"');
+		WScript.Quit();
+	}
+}
+
+function initVBIOLET()
+{
+	try
+	{
+		var programPath = wshShell.RegRead("HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\powerpnt.exe\\");
+		var programVersion = FSO.GetFileVersion(programPath).split(".");
+		if (programVersion.length < 2)
+			throw new Error("Unable to detect the version of PowerPoint currently installed on the computer.");
+		programVersion = programVersion[0] + "." + programVersion[1];
+		var valuePath = "HKCU\\Software\\Microsoft\\Office\\" + programVersion + "\\PowerPoint\\Security\\AccessVBOM";
+		try
+		{
+			var initialValue = wshShell.RegRead(valuePath);
+		}
+		catch (nothing)
+		{
+			var initialValue = 0;
+		}
+		wshShell.RegWrite(valuePath, 1, "REG_DWORD");
+	}
+	catch (e)
+	{
+		Error("Err_SecurityCircumevention", e.description);
+		WScript.Quit();
+	}
+	
+	try
+	{
+		var PP = new ActiveXObject("PowerPoint.Application");
+		var project = PP.Presentations.Add(0).VBProject;
+		var module = project.VBComponents.Add(1).CodeModule;
+		module.AddFromString(getResource("VBCode"));
+		wshShell.RegWrite(valuePath, initialValue, "REG_DWORD");
+	}
+	catch (e)
+	{
+		Error("Err_ModuleInitialization", e.description);
+		WScript.Quit();
+	}
+	
+	return PP;
+}
+
+function Error(msgId)
+{
+	var msg = getResource(msgId);
+	for (var i = 1;i < arguments.length;i++)
+		msg = msg.replace(/["%" + i]/g, arguments[i]);
+	wshShell.Popup(msg, 0, "Cursor Remedy", 16);
+}
+
+function Exit()
+{
+	if (isInInstallationStation)
+	{
+		QuitMission = true;
+		return false;
+	}
+	if (wshShell.Popup(getResource("Msg_Exit"), 0, "Cursor Remedy", 36) != 6)
+		return false;
+	QuitMission = true;
+	return true;
+}
+
+function startScreenSaver()
+{
+	PP.Run((window.screen.width > window.screen.height) ? "ScreenSaverH" : "ScreenSaverV");
+}
+
+function installationStation()
+{
+	isInInstallationStation = true;
+	SharedMemory("CR") = this;
+	
+	var tmpName = FSO.GetTempName().replace(".tmp", ".hta");
+	var tmpFolder = FSO.GetSpecialFolder(2);
+	var tmpHta = tmpFolder.CreateTextFile(tmpName);
+	tmpHta.Write(getResource("UI_HTA_Code"));
+	tmpHta.Close();
+	
+	var tmpFile = tmpFolder.Files.Item(tmpName);
+	wshShell.Run('mshta "' + tmpFile.Path + '"');
+		
+	while ((!QuitMission) && (!isNewlyInstalled))
+		WScript.Sleep(1000);
+	
+	tmpFile.Delete();
+	if (!isNewlyInstalled)
+	{
+		UI.close();
+		WScript.Quit();
+	}
+}
+
+function UI_Install(forAllUsers)
+{
+	SharedMemory("ScriptPath") = WScript.ScriptFullName;
+	var path = PP.Run("WhereToInstall");
+	if (!path)
+		return false;
+	if (SharedMemory("OfnFlags") & 0x400)
+	{
+		Error("Err_ExtensionChanged", FSO.GetExtensionName(path));
+		return false;
+	}
+	
+	FSO.MoveFile(SharedMemory("ScriptPath"), path);
+	SharedMemory("ScriptPath") = path;
+	
+	if (forAllUsers)
+	{
+		createAppShortcut(wshShell.SpecialFolders(3));
+		createAppShortcut(wshShell.SpecialFolders(0));
+	}
+	else
+	{
+		createAppShortcut(wshShell.SpecialFolders(14));
+		createAppShortcut(wshShell.SpecialFolders(4));
+	}
+	
+	if (wshShell.Popup(getResource("Msg_FinalizeInstallation"), 0, "Cursor Remedy Installation", 36) == 6)
+		wshShell.Run("control desk.cpl ,@ScreenSaver");
+	
+	isNewlyInstalled = true;
+	isInInstallationStation = false;
+	return true;
+}
+
+function createAppShortcut(folder)
+{
+	var shortcut = wshShell.CreateShortcut(FSO.BuildPath(folder, "Cursor Remedy.lnk"));
+	shortcut.TargetPath = "wscript.exe";
+	shortcut.Arguments = '"' + SharedMemory("ScriptPath") + '"';
+	shortcut.IconLocation = "shell32.dll,232";
+	shortcut.Description = getResource("AppDescription");
+	shortcut.Save();
+}
+]]>
+</script>
+</job>
+</package>
